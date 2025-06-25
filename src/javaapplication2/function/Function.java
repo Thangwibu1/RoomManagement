@@ -96,7 +96,7 @@ public class Function {
             LocalDate startDateLocal = LocalDate
                     .parse(startDateParts[2] + "-" + startDateParts[1] + "-" + startDateParts[0]);
             if (!startDateLocal.isAfter(LocalDate.now())) {
-                System.out.println("Strt date must be in future!");
+                System.out.println("Start date must be in future!");
                 continue;
             }
             LocalDate endDateLocal = startDateLocal.plusDays(rentalDays);
@@ -113,6 +113,7 @@ public class Function {
             roomId = Inputer.inputString("^[R]{1}[0-9]{3}$", "Please enter customer's room ID: ");
             if (roomList.searchById(roomId) == null || !reservationList.isAvailable(roomId, startDate, endDate)) {
                 System.out.println(reservationList.isAvailable(roomId, startDate, endDate));
+                System.out.println(roomList.searchById(roomId) == null);
                 System.out.println("Incorrect room ID. Please enter a valid room ID.");
                 continue;
             }
@@ -134,7 +135,7 @@ public class Function {
             guestList.saveToFile();
             new Reservation(reservationId, nationalId, roomId, rentalDays, startDate, endDate, nameOfCotenant)
                     .showInformation();
-            new Guest(nationalId, name, birthDate, gender, phoneNumber).showInformation();
+            new Guest(nationalId, guestList.searchById(nationalId).getFullName(), guestList.searchById(nationalId).getBirthDate(), guestList.searchById(nationalId).getGender(), guestList.searchById(nationalId).getPhoneNumber()).showInformation();
         } else {
             System.out.println("Failed to add guest information or reservation.");
         }
@@ -323,8 +324,10 @@ public class Function {
                     + reservation.getStartDate().substring(3, 5) + "-" + reservation.getStartDate().substring(0, 2));
             LocalDate endDate = LocalDate.parse(reservation.getEndDate().substring(6) + "-"
                     + reservation.getEndDate().substring(3, 5) + "-" + reservation.getEndDate().substring(0, 2));
-            if (today.isBefore(startDate) && today.isAfter(endDate)) {
-                availableRooms.remove(roomList.searchById(reservation.getRoomId()));
+            if (today.isBefore(endDate)) {
+                if (availableRooms.contains(roomList.searchById(reservation.getRoomId()))) {
+                    availableRooms.remove(roomList.searchById(reservation.getRoomId()));
+                }
             }
         }
         availableRooms.forEach(room -> {
@@ -343,7 +346,7 @@ public class Function {
         for (Reservation reservation : reservationList) {
             LocalDate resStart = LocalDate.parse(reservation.getStartDate().substring(6) + "-" + reservation.getStartDate().substring(3, 5) + "-" + reservation.getStartDate().substring(0, 2));
             LocalDate resEnd = LocalDate.parse(reservation.getEndDate().substring(6) + "-" + reservation.getEndDate().substring(3, 5) + "-" + reservation.getEndDate().substring(0, 2));
-            if ((start.isBefore(resEnd)) || (end.isAfter(resStart))) {
+            if ((start.isBefore(resEnd) && resStart.isBefore(start)) || (end.isAfter(resStart) && resEnd.isAfter(end))) {
                 if (availableRooms.contains(roomList.searchById(reservation.getRoomId()))) {
                     availableRooms.remove(roomList.searchById(reservation.getRoomId()));
                 }
