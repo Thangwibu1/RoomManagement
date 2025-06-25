@@ -42,6 +42,7 @@ public class Function {
         reservationList.readFromFile();
     }
 
+    // CASE 3: Enter Guest Information
     public void enterGuestInformation() throws IOException {
         reservationList.showAll();
         // Search customer by name
@@ -106,7 +107,7 @@ public class Function {
         // handle end date
         // end part handle end date
 
-        roomList.showAll();
+        showAvailableRooms(startDate, endDate);
         String roomId = "";
         while (true) {
             roomId = Inputer.inputString("^[R]{1}[0-9]{3}$", "Please enter customer's room ID: ");
@@ -315,7 +316,7 @@ public class Function {
     }
 
     public void showAvailableRooms() {
-        List<Room> availableRooms = new ArrayList<>();
+        List<Room> availableRooms = roomList;
         LocalDate today = LocalDate.now();
         for (Reservation reservation : reservationList) {
             LocalDate startDate = LocalDate.parse(reservation.getStartDate().substring(6) + "-"
@@ -323,16 +324,38 @@ public class Function {
             LocalDate endDate = LocalDate.parse(reservation.getEndDate().substring(6) + "-"
                     + reservation.getEndDate().substring(3, 5) + "-" + reservation.getEndDate().substring(0, 2));
             if (today.isBefore(startDate) && today.isAfter(endDate)) {
-                availableRooms.add(roomList.searchById(reservation.getRoomId()));
+                availableRooms.remove(roomList.searchById(reservation.getRoomId()));
             }
-        } 
+        }
         availableRooms.forEach(room -> {
             try {
                 room.showInformation();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        });  
+        });
     }
-    
+
+    public void showAvailableRooms(String startDate, String endDate) {
+        List<Room> availableRooms = roomList;
+        LocalDate start = LocalDate.parse(startDate.substring(6) + "-" + startDate.substring(3, 5) + "-" + startDate.substring(0, 2));
+        LocalDate end = LocalDate.parse(endDate.substring(6) + "-" + endDate.substring(3, 5) + "-" + endDate.substring(0, 2));
+        for (Reservation reservation : reservationList) {
+            LocalDate resStart = LocalDate.parse(reservation.getStartDate().substring(6) + "-" + reservation.getStartDate().substring(3, 5) + "-" + reservation.getStartDate().substring(0, 2));
+            LocalDate resEnd = LocalDate.parse(reservation.getEndDate().substring(6) + "-" + reservation.getEndDate().substring(3, 5) + "-" + reservation.getEndDate().substring(0, 2));
+            if ((start.isBefore(resEnd)) || (end.isAfter(resStart))) {
+                if (availableRooms.contains(roomList.searchById(reservation.getRoomId()))) {
+                    availableRooms.remove(roomList.searchById(reservation.getRoomId()));
+                }
+            }
+        }
+        availableRooms.forEach(room -> {
+            try {
+                room.showInformation();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
 }
